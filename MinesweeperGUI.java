@@ -29,7 +29,7 @@ public class MinesweeperGUI extends JFrame{
     private JMenu menuBarOptions;
 	private JMenuItem menuRestartGame, menuLoadGame, menuSaveGame, menuExit;
     private JTextField txtPlayerName = new JTextField(30);
-    private JLabel lblPlayerName = new JLabel("Player Name:   ");
+    private JLabel lblPlayerName = new JLabel("Name: ");
 
 
 
@@ -39,23 +39,9 @@ public class MinesweeperGUI extends JFrame{
     private final int N_ROWS = 16;
     private final int N_COLS = 16;
     private final int CELL_SIZE = 15;
-    private final int NUM_IMAGES = 13;
     private final int BOARD_WIDTH = N_COLS * CELL_SIZE + 1;
-    private final int BOARD_HEIGHT = N_ROWS * CELL_SIZE + 1;
-    private final int COVER_FOR_CELL = 10;
-    private final int MARK_FOR_CELL = 10;
-    private final int EMPTY_CELL = 0;
-    private final int MINE_CELL = 9;
-    private final int COVERED_MINE_CELL = MINE_CELL + COVER_FOR_CELL;
-    private final int MARKED_MINE_CELL = COVERED_MINE_CELL + MARK_FOR_CELL;
+    private final int BOARD_HEIGHT = N_ROWS * CELL_SIZE + 110;
 
-    private final int DRAW_MINE = 9;
-    private final int DRAW_COVER = 10;
-    private final int DRAW_MARK = 11;
-    private final int DRAW_WRONG_MARK = 12;
-
-    private final int N_MINES = 40;
-	
 	//Networking Variables
 	private ObjectOutputStream clientOutputStream;
 	private ObjectInputStream clientInputStream;
@@ -89,12 +75,13 @@ public class MinesweeperGUI extends JFrame{
         panel = new JPanel(new BorderLayout());
         mainPanel = new JPanel();
         panel = new JPanel(new BorderLayout());
-		mainPanel = new JPanel();
+		mainPanel = new JPanel(new BorderLayout());
 		namePanel = new JPanel();
     }
 
     public void addBoard(){
-        frame.add(new Board(statusbar));
+        mainPanel.add(new Board(statusbar), BorderLayout.CENTER);
+        mainPanel.add(statusbar, BorderLayout.SOUTH);
     }
 
     public JMenuBar addMenuBar(){
@@ -107,7 +94,6 @@ public class MinesweeperGUI extends JFrame{
 	 * Creates the main panel that holds the scores.
 	 */
 	public void addMainPanel(){
-		mainPanel.setLayout(new BorderLayout());
 		panel.add(mainPanel, BorderLayout.CENTER);
 	}
 
@@ -116,8 +102,8 @@ public class MinesweeperGUI extends JFrame{
 		namePanel.setLayout(new BoxLayout(namePanel,BoxLayout.X_AXIS));
 		
 		lblPlayerName.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblPlayerName.setPreferredSize(new Dimension(150,50));
-		lblPlayerName.setMaximumSize(new Dimension(150,50));
+		lblPlayerName.setPreferredSize(new Dimension(50,50));
+		lblPlayerName.setMaximumSize(new Dimension(50,50));
 		
 		txtPlayerName.setHorizontalAlignment(SwingConstants.LEFT);
 		txtPlayerName.setPreferredSize(new Dimension(200,50));

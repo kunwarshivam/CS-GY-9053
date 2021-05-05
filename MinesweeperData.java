@@ -13,8 +13,7 @@ public class MinesweeperData implements Serializable{
 	MinesweeperData(String playerName, String gameDate, Minesweeper y) {
 		this.playerName = playerName;
 		this.gameDate = gameDate;
-		this.y = y;
-		
+		this.y = y;	
 	}
 	
 	public String getPlayerName() {

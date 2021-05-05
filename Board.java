@@ -79,9 +79,7 @@ public class Board extends JPanel {
 
             field[i] = COVER_FOR_CELL;
         }
-
         statusbar.setText(Integer.toString(minesLeft));
-
         int i = 0;
 
         while (i < N_MINES) {
@@ -283,7 +281,6 @@ public class Board extends JPanel {
                         uncover++;
                     }
                 }
-
                 g.drawImage(img[cell], (j * CELL_SIZE),
                         (i * CELL_SIZE), this);
             }
