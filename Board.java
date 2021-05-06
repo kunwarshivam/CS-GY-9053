@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -41,10 +42,13 @@ public class Board extends JPanel {
 
     private int allCells;
     private final JLabel statusbar;
+    private Minesweeper minesweeperObj;
 
-    public Board(JLabel statusbar) {
+    public Board(JLabel statusbar, Minesweeper obj) {
 
         this.statusbar = statusbar;
+        this.minesweeperObj = obj;
+
         initBoard();
     }
 
@@ -64,21 +68,19 @@ public class Board extends JPanel {
         newGame();
     }
 
-    private void newGame() {
+
+
+    public void newGame(boolean loadedFromDB) {
 
         int cell;
 
         Random random = new Random();
         inGame = true;
-        minesLeft = N_MINES;
-
         allCells = N_ROWS * N_COLS;
-        field = new int[allCells];
+        minesLeft = this.minesweeperObj.getMinesLeft();
 
-        for (int i = 0; i < allCells; i++) {
+        field = Arrays.copyOf(this.minesweeperObj.getField(), this.minesweeperObj.getField().length);
 
-            field[i] = COVER_FOR_CELL;
-        }
         statusbar.setText(Integer.toString(minesLeft));
         int i = 0;
 
@@ -151,6 +153,99 @@ public class Board extends JPanel {
                 }
             }
         }
+        repaint();
+        minesweeperObj.setField(field);
+    }
+
+    public void newGame() {
+
+        int cell;
+
+        Random random = new Random();
+        inGame = true;
+        allCells = N_ROWS * N_COLS;
+        field = new int[allCells];
+
+        for (int i = 0; i < allCells; i++) {
+
+            field[i] = COVER_FOR_CELL;
+        }
+
+
+        statusbar.setText(Integer.toString(minesLeft));
+        int i = 0;
+
+        while (i < N_MINES) {
+
+            int position = (int) (allCells * random.nextDouble());
+
+            if ((position < allCells)
+                    && (field[position] != COVERED_MINE_CELL)) {
+
+                int current_col = position % N_COLS;
+                field[position] = COVERED_MINE_CELL;
+                i++;
+
+                if (current_col > 0) {
+                    cell = position - 1 - N_COLS;
+                    if (cell >= 0) {
+                        if (field[cell] != COVERED_MINE_CELL) {
+                            field[cell] += 1;
+                        }
+                    }
+                    cell = position - 1;
+                    if (cell >= 0) {
+                        if (field[cell] != COVERED_MINE_CELL) {
+                            field[cell] += 1;
+                        }
+                    }
+
+                    cell = position + N_COLS - 1;
+                    if (cell < allCells) {
+                        if (field[cell] != COVERED_MINE_CELL) {
+                            field[cell] += 1;
+                        }
+                    }
+                }
+
+                cell = position - N_COLS;
+                if (cell >= 0) {
+                    if (field[cell] != COVERED_MINE_CELL) {
+                        field[cell] += 1;
+                    }
+                }
+
+                cell = position + N_COLS;
+                if (cell < allCells) {
+                    if (field[cell] != COVERED_MINE_CELL) {
+                        field[cell] += 1;
+                    }
+                }
+
+                if (current_col < (N_COLS - 1)) {
+                    cell = position - N_COLS + 1;
+                    if (cell >= 0) {
+                        if (field[cell] != COVERED_MINE_CELL) {
+                            field[cell] += 1;
+                        }
+                    }
+                    cell = position + N_COLS + 1;
+                    if (cell < allCells) {
+                        if (field[cell] != COVERED_MINE_CELL) {
+                            field[cell] += 1;
+                        }
+                    }
+                    cell = position + 1;
+                    if (cell < allCells) {
+                        if (field[cell] != COVERED_MINE_CELL) {
+                            field[cell] += 1;
+                        }
+                    }
+                }
+            }
+        }
+        repaint();
+        minesweeperObj.setField(field);
     }
 
     private void find_empty_cells(int j) {
@@ -246,7 +341,7 @@ public class Board extends JPanel {
 
     @Override
     public void paintComponent(Graphics g) {
-
+//        minesweeperObj.setGraphics(g);
         int uncover = 0;
 
         for (int i = 0; i < N_ROWS; i++) {
@@ -366,6 +461,7 @@ public class Board extends JPanel {
                 }
 
                 if (doRepaint) {
+                    minesweeperObj.setField(field);
                     repaint();
                 }
             }

@@ -1,6 +1,7 @@
+
 import java.io.Serializable;
 
-public class MinesweeperData implements Serializable{
+public class MinesweeperData implements Serializable {
 	
 	private Minesweeper y;
 	

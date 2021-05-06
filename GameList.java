@@ -1,6 +1,8 @@
+
+
 import java.io.Serializable;
 
-public class GameList implements Serializable{
+public class GameList implements Serializable {
 
 	private int id;
 	private String playerName;
