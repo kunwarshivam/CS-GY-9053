@@ -95,9 +95,6 @@ public class Board extends JPanel {
 
     public void newGame(boolean loadedFromDB) {
 
-        int cell;
-
-        Random random = new Random();
         inGame = true;
         allCells = N_ROWS * N_COLS;
         minesLeft = this.minesweeperObj.getMinesLeft();
@@ -106,77 +103,7 @@ public class Board extends JPanel {
         statusbar.setText(Integer.toString(minesLeft));
         int i = 0;
 
-        while (i < N_MINES) {
-
-            int position = (int) (allCells * random.nextDouble());
-
-            if ((position < allCells)
-                    && (field[position] != COVERED_MINE_CELL)) {
-
-                int current_col = position % N_COLS;
-                field[position] = COVERED_MINE_CELL;
-                i++;
-
-                if (current_col > 0) {
-                    cell = position - 1 - N_COLS;
-                    if (cell >= 0) {
-                        if (field[cell] != COVERED_MINE_CELL) {
-                            field[cell] += 1;
-                        }
-                    }
-                    cell = position - 1;
-                    if (cell >= 0) {
-                        if (field[cell] != COVERED_MINE_CELL) {
-                            field[cell] += 1;
-                        }
-                    }
-
-                    cell = position + N_COLS - 1;
-                    if (cell < allCells) {
-                        if (field[cell] != COVERED_MINE_CELL) {
-                            field[cell] += 1;
-                        }
-                    }
-                }
-
-                cell = position - N_COLS;
-                if (cell >= 0) {
-                    if (field[cell] != COVERED_MINE_CELL) {
-                        field[cell] += 1;
-                    }
-                }
-
-                cell = position + N_COLS;
-                if (cell < allCells) {
-                    if (field[cell] != COVERED_MINE_CELL) {
-                        field[cell] += 1;
-                    }
-                }
-
-                if (current_col < (N_COLS - 1)) {
-                    cell = position - N_COLS + 1;
-                    if (cell >= 0) {
-                        if (field[cell] != COVERED_MINE_CELL) {
-                            field[cell] += 1;
-                        }
-                    }
-                    cell = position + N_COLS + 1;
-                    if (cell < allCells) {
-                        if (field[cell] != COVERED_MINE_CELL) {
-                            field[cell] += 1;
-                        }
-                    }
-                    cell = position + 1;
-                    if (cell < allCells) {
-                        if (field[cell] != COVERED_MINE_CELL) {
-                            field[cell] += 1;
-                        }
-                    }
-                }
-            }
-        }
         repaint();
-        minesweeperObj.setField(field);
         timer.start();
     }
 
