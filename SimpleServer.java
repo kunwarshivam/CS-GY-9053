@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -61,7 +60,7 @@ public class SimpleServer {
               }
               
               if (code == 202) {
-            	 ArrayList<GameList> list = retriveData();
+            	 ArrayList<GameList> list = retrieveData();
             	  serverOutputStream.writeObject(list);
             	  serverOutputStream.flush();
               }
@@ -73,9 +72,17 @@ public class SimpleServer {
             	  serverOutputStream.writeObject(data);
             	  serverOutputStream.flush();
               }
-//			  else {
-//				  break;
-//			  }
+			  if (code  == 206) {
+			  	Score score = (Score) serverInputStream.readObject();
+			  	int returnCode = saveScore(score);
+			  	serverOutputStream.write(returnCode);
+			  	serverOutputStream.flush();
+			  }
+			  if (code == 208) {
+				  ArrayList<ScoreList> score = retrieveScores();
+				  serverOutputStream.writeObject(score);
+				  serverOutputStream.flush();
+			  }
               
           }
       }catch(IOException e){
@@ -127,12 +134,70 @@ public class SimpleServer {
 			return 404;
 		}
   }
-  
+
+  public int saveScore(Score score) {
+		//Add JDBC code to save to database
+		System.out.println(">>>>>>score:"+score.getScore());
+		String sql = "INSERT INTO scores(name, score) values(?,?)";
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, score.getPlayerName());
+			ps.setString(2, ""+score.getScore());
+
+			int res = ps.executeUpdate();
+			ps.close();
+
+			if(res>0) {
+				return 207;
+			}
+			else {
+				return 404;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 404;
+		}
+	}
+
+	public ArrayList<ScoreList> retrieveScores() {
+		//Retrieve all game states
+		ArrayList<ScoreList> lists = new ArrayList<>();
+		int id;
+		String name;
+		int score;
+
+		String sql = "Select id, name, score from scores order by score desc limit 5";
+		try {
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ResultSet rset = ps.executeQuery();
+
+			while (rset.next()) {
+				id = rset.getInt(1);
+				name = rset.getString(2);
+				score = Integer.parseInt(rset.getString(3));
+
+				ScoreList list = new ScoreList(id, name, score);
+				System.out.println("Fetched: " + list.getGameName());
+
+				lists.add(list);
+			}
+
+			rset.close();
+			ps.close();
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return lists;
+	}
+
 //   /**
 //    * Get list of all the saved games
 //    * @return Array with all games saved
 //    */
-  public ArrayList<GameList> retriveData() {
+  public ArrayList<GameList> retrieveData() {
 	  //Retrieve all game states
 	  ArrayList<GameList> lists = new ArrayList<GameList>();
 	  int id;

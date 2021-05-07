@@ -2,13 +2,13 @@
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Random;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 public class Board extends JPanel {
 
@@ -22,6 +22,7 @@ public class Board extends JPanel {
     private final int MINE_CELL = 9;
     private final int COVERED_MINE_CELL = MINE_CELL + COVER_FOR_CELL;
     private final int MARKED_MINE_CELL = COVERED_MINE_CELL + MARK_FOR_CELL;
+    private final int TOP_MARGIN = 30;
 
     private final int DRAW_MINE = 9;
     private final int DRAW_COVER = 10;
@@ -44,12 +45,34 @@ public class Board extends JPanel {
     private final JLabel statusbar;
     private Minesweeper minesweeperObj;
 
+    private JLabel timeLabel = new JLabel("Time Remaining: 1000");
+    private JPanel timePanel = new JPanel();
+    private Timer timer;
+
     public Board(JLabel statusbar, Minesweeper obj) {
 
         this.statusbar = statusbar;
         this.minesweeperObj = obj;
-
+        addTimePanel();
         initBoard();
+    }
+
+    public void addTimePanel(){
+        timePanel.setLayout(new BoxLayout(timePanel, BoxLayout.X_AXIS));
+        timePanel.add(timeLabel);
+        add(timePanel);
+
+        timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                minesweeperObj.setTimeLeft(minesweeperObj.getTimeLeft() - 1);
+                timeLabel.setText("Time Remaining: " + minesweeperObj.getTimeLeft());
+                timeLabel.repaint();
+                if(minesweeperObj.getTimeLeft() <= 0){
+                    repaint();
+                }
+            }
+        });
     }
 
     private void initBoard() {
@@ -78,7 +101,6 @@ public class Board extends JPanel {
         inGame = true;
         allCells = N_ROWS * N_COLS;
         minesLeft = this.minesweeperObj.getMinesLeft();
-
         field = Arrays.copyOf(this.minesweeperObj.getField(), this.minesweeperObj.getField().length);
 
         statusbar.setText(Integer.toString(minesLeft));
@@ -155,6 +177,7 @@ public class Board extends JPanel {
         }
         repaint();
         minesweeperObj.setField(field);
+        timer.start();
     }
 
     public void newGame() {
@@ -165,13 +188,13 @@ public class Board extends JPanel {
         inGame = true;
         allCells = N_ROWS * N_COLS;
         field = new int[allCells];
-
+        minesLeft = minesweeperObj.getMinesLeft();
         for (int i = 0; i < allCells; i++) {
 
             field[i] = COVER_FOR_CELL;
         }
 
-
+        minesweeperObj.restartGame();
         statusbar.setText(Integer.toString(minesLeft));
         int i = 0;
 
@@ -246,6 +269,7 @@ public class Board extends JPanel {
         }
         repaint();
         minesweeperObj.setField(field);
+        timer.start();
     }
 
     private void find_empty_cells(int j) {
@@ -341,8 +365,11 @@ public class Board extends JPanel {
 
     @Override
     public void paintComponent(Graphics g) {
-//        minesweeperObj.setGraphics(g);
         int uncover = 0;
+
+        if (minesweeperObj.getTimeLeft() == 0) {
+            inGame = false;
+        }
 
         for (int i = 0; i < N_ROWS; i++) {
 
@@ -377,17 +404,18 @@ public class Board extends JPanel {
                     }
                 }
                 g.drawImage(img[cell], (j * CELL_SIZE),
-                        (i * CELL_SIZE), this);
+                        (i * CELL_SIZE) + TOP_MARGIN, this);
             }
         }
 
         if (uncover == 0 && inGame) {
-
             inGame = false;
+            minesweeperObj.saveScore();
             statusbar.setText("Game won");
-
+            timer.stop();
         } else if (!inGame) {
             statusbar.setText("Game lost");
+            timer.stop();
         }
     }
 
@@ -397,7 +425,7 @@ public class Board extends JPanel {
         public void mousePressed(MouseEvent e) {
 
             int x = e.getX();
-            int y = e.getY();
+            int y = e.getY() - TOP_MARGIN;
 
             int cCol = x / CELL_SIZE;
             int cRow = y / CELL_SIZE;

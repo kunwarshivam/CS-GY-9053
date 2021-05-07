@@ -1,10 +1,5 @@
 
-import java.awt.BorderLayout;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.Graphics;
+import java.awt.*;
 
 import java.awt.event.*;
 import java.io.*;
@@ -12,20 +7,19 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
-
-import java.awt.Image;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.JTableHeader;
 
 public class MinesweeperGUI extends JFrame{
 
     private static JFrame frame, frame2;
-    private JPanel panel, savePanel, loadPanel, mainPanel, namePanel, board;
+    private JPanel panel, savePanel, loadPanel, mainPanel, namePanel, scorePanel;
     private JButton btnSaveGame;
     private JButton[] btnLoadGame;
-
+	private JTable scoreTable;
     private JMenuBar menuBar;
     private JMenu menuBarOptions;
 	private JMenuItem menuRestartGame, menuLoadGame, menuSaveGame, menuExit, menuTop5Game;
@@ -35,13 +29,14 @@ public class MinesweeperGUI extends JFrame{
     private static Minesweeper minesweeperObj = new Minesweeper();
 
     private ArrayList<GameList> lists;
+    private ArrayList<ScoreList> scores;
 
     // GUI 
     private final int N_ROWS = 16;
     private final int N_COLS = 16;
     private final int CELL_SIZE = 15;
     private final int BOARD_WIDTH = N_COLS * CELL_SIZE + 1;
-    private final int BOARD_HEIGHT = N_ROWS * CELL_SIZE + 110;
+    private final int BOARD_HEIGHT = N_ROWS * CELL_SIZE + 90;
 
 	//Networking Variables
 	private ObjectOutputStream clientOutputStream;
@@ -61,7 +56,6 @@ public class MinesweeperGUI extends JFrame{
         statusbar = new JLabel("");
 		boardObj = new Board(statusbar, minesweeperObj);
         addMainPanel();
-        addPlayerName();
         addBoard();
         frame.getContentPane().add(panel);
 		frame.setVisible(true);
@@ -100,7 +94,7 @@ public class MinesweeperGUI extends JFrame{
 	}
 
     public void addPlayerName(){
-		mainPanel.add(namePanel, BorderLayout.NORTH);
+		savePanel.add(namePanel, BorderLayout.NORTH);
 		namePanel.setLayout(new BoxLayout(namePanel,BoxLayout.X_AXIS));
 		
 		lblPlayerName.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -110,6 +104,23 @@ public class MinesweeperGUI extends JFrame{
 		txtPlayerName.setHorizontalAlignment(SwingConstants.LEFT);
 		txtPlayerName.setPreferredSize(new Dimension(200,50));
 		txtPlayerName.setMaximumSize(new Dimension(150,30));
+
+		txtPlayerName.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				minesweeperObj.setPlayerName(txtPlayerName.getText());
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				minesweeperObj.setPlayerName(txtPlayerName.getText());
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				minesweeperObj.setPlayerName(txtPlayerName.getText());
+			}
+		});
 		
 		namePanel.add(lblPlayerName);
 		namePanel.add(txtPlayerName);
@@ -173,7 +184,8 @@ public class MinesweeperGUI extends JFrame{
 		savePanel = new JPanel();
 		panel.add(savePanel, BorderLayout.CENTER);
 		savePanel.setLayout(new BoxLayout(savePanel,BoxLayout.X_AXIS));
-		
+		addPlayerName();
+
 		btnSaveGame = new JButton("Save Game");
 		btnSaveGame.setHorizontalAlignment(SwingConstants.CENTER);
 		btnSaveGame.setPreferredSize(new Dimension(150,30));
@@ -189,7 +201,7 @@ public class MinesweeperGUI extends JFrame{
 	 * Get list of games saved from server
 	 * @return list of games saved in GameList obj
 	 */
-	public ArrayList<GameList> retrivePastGames() {
+	public ArrayList<GameList> retrievePastGames() {
 		ArrayList<GameList> lists = new ArrayList<>();
 		
 		//Init connection and get list of saved games
@@ -219,6 +231,38 @@ public class MinesweeperGUI extends JFrame{
 		
 		return lists;
 	}
+
+	public ArrayList<ScoreList> retrieveTop5Scores() {
+		ArrayList<ScoreList> lists = new ArrayList<>();
+
+		//Init connection and get list of saved games
+		System.out.println("Starting Connection...");
+		try{
+			sock = new Socket("127.0.0.1", 5001);
+			clientOutputStream = new ObjectOutputStream(sock.getOutputStream());
+			clientInputStream = new ObjectInputStream(sock.getInputStream());
+
+			System.out.println("Connected...");
+			int init = clientInputStream.read();
+			System.out.println(init);
+
+			//Code 202: to get list of saved data
+			clientOutputStream.write(208);
+			clientOutputStream.flush();
+
+			lists = (ArrayList<ScoreList>) clientInputStream.readObject();
+
+			clientOutputStream.close();
+			clientInputStream.close();
+			sock.close();
+
+		}catch(ClassNotFoundException | IOException ex){
+			ex.printStackTrace();
+		}
+
+		return lists;
+	}
+
 	/**
 	 *  creates the Load game window - shows game save states.
 	 */
@@ -236,7 +280,7 @@ public class MinesweeperGUI extends JFrame{
 		panel.add(loadPanel, BorderLayout.NORTH);
 		loadPanel.setLayout(new BoxLayout(loadPanel,BoxLayout.Y_AXIS));
 		
-		lists = retrivePastGames();
+		lists = retrievePastGames();
 		btnLoadGame = new JButton[lists.size()];
 		
 		for (int i = 0; i < lists.size(); i++) {
@@ -255,31 +299,37 @@ public class MinesweeperGUI extends JFrame{
 
     public void top5GameWindow(){
 		frame2 = new JFrame();
-		frame2.setTitle("Load Game");
+		frame2.setTitle("Ranking");
+		frame2.setResizable(false);
 		frame2.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame2.setSize(400,750);
+		frame2.setSize(500,200);
 		frame2.setResizable(true);
 
 		panel = new JPanel(new BorderLayout());
 		frame2.getContentPane().add(panel);
 
-		// loadPanel = new JPanel();
-		// panel.add(loadPanel, BorderLayout.NORTH);
-		// loadPanel.setLayout(new BoxLayout(loadPanel,BoxLayout.Y_AXIS));
-		
-		// lists = retrivePastGames();
-		// btnLoadGame = new JButton[lists.size()];
-		
-		// for (int i = 0; i < lists.size(); i++) {
-			
-		// 	btnLoadGame[i] = new JButton(lists.get(i).getGameName());
-		// 	btnLoadGame[i].setHorizontalAlignment(SwingConstants.CENTER);
-		// 	btnLoadGame[i].setPreferredSize(new Dimension(400,30));
-		// 	btnLoadGame[i].setMaximumSize(new Dimension(400,30));
-		// 	btnLoadGame[i].addActionListener(new RestoreHandler());
-			
-		// 	loadPanel.add(btnLoadGame[i]);
-		// }
+		 scorePanel = new JPanel();
+		 panel.add(scorePanel, BorderLayout.NORTH);
+
+		 scores = retrieveTop5Scores();
+
+		String[][] rows = new String[scores.size()][3];
+		for (int i = 0; i < scores.size(); i++) {
+			rows[i][0] = Integer.toString(i+1);
+			rows[i][1] = scores.get(i).getPlayerName();
+			rows[i][2] = Integer.toString(scores.get(i).getScore());
+		}
+		String[] header = { "Rank", "Name", "Score" };
+		scoreTable = new JTable(rows, header);
+		JTableHeader headerComp = scoreTable.getTableHeader();
+		headerComp.setBackground(Color.WHITE);
+		headerComp.setSize(100, 50);
+		scoreTable.setRowHeight(30);
+		headerComp.setFont(new Font("Helvetica", Font.PLAIN, 15));
+		scoreTable.setFont(new Font("Helvetica", Font.PLAIN, 15));
+
+		scorePanel.add(new JScrollPane(scoreTable));
+		panel.add(scorePanel);
 
 		frame2.setVisible(true);
 	}
@@ -363,20 +413,14 @@ public class MinesweeperGUI extends JFrame{
 			
 			//Update UI based on new data
 			
-			//Set Player Name
+			//Set Minesweeper object
 			Minesweeper md = data.getMinesweeperData();
 			minesweeperObj.setField(md.getField());
-			int[] field = md.getField();
-			System.out.println("=====>"+Arrays.toString(field));
-			int check[] = minesweeperObj.getField();
-			System.out.println("=====>"+Arrays.toString(check));
+			minesweeperObj.setMinesLeft(md.getMinesLeft());
+			minesweeperObj.setTimeLeft(md.getTimeLeft());
+			minesweeperObj.setPlayerName(md.getPlayerName());
 			boardObj.newGame(true);
-//			boardObj.paintComponent(minesweeperObj.getGraphics());
-
-//			addMainPanel();
-//			addPlayerName();
 			txtPlayerName.setText(data.getPlayerName());
-//			addBoard();
         }
 	}
 
@@ -401,7 +445,7 @@ public class MinesweeperGUI extends JFrame{
 		public void actionPerformed(ActionEvent event) {
 
 			String playerName = txtPlayerName.getText();
-			
+			minesweeperObj.setPlayerName(playerName);
 			LocalDateTime myDateObj = LocalDateTime.now();
 		    System.out.println("Before formatting: " + myDateObj);
 		    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"); //Changeable, doesn't affect gameplay
