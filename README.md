@@ -3,7 +3,11 @@
 
 Steps:
 
-1. Run StartGame.java
+1. Run StartGame.jar
+
+Or
+
+2. Run StartGame.java
 
 Or
 
