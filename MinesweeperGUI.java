@@ -13,6 +13,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.JTableHeader;
 
+
+// Author: Kunwar Shivam Srivastav
+// https://github.com/kunwarshivam/CS-GY-9053,
+
 public class MinesweeperGUI extends JFrame{
 
     private static JFrame frame, frame2;
@@ -22,7 +26,7 @@ public class MinesweeperGUI extends JFrame{
 	private JTable scoreTable;
     private JMenuBar menuBar;
     private JMenu menuBarOptions;
-	private JMenuItem menuRestartGame, menuLoadGame, menuSaveGame, menuExit, menuTop5Game;
+	private JMenuItem menuRestartGame, menuLoadGame, menuSaveGame, menuExit, menuTop5Game, menuNewGame;
     private JTextField txtPlayerName = new JTextField(30);
     private JLabel lblPlayerName = new JLabel("Name: ");
 
@@ -142,11 +146,15 @@ public class MinesweeperGUI extends JFrame{
     }
 
     public void addOptionItems(){
+		menuNewGame = new JMenuItem("New Game");
         menuLoadGame = new JMenuItem("Load Game");
         menuSaveGame = new JMenuItem("Save Game");
         menuTop5Game = new JMenuItem("Top 5 Games");
         menuExit = new JMenuItem("Exit");
-        
+
+		menuNewGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+		menuNewGame.addActionListener(new MenuHandler());
+
         menuLoadGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.CTRL_MASK));
 		menuLoadGame.addActionListener(new MenuHandler());
 
@@ -159,6 +167,7 @@ public class MinesweeperGUI extends JFrame{
         menuExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
 		menuExit.addActionListener(new MenuHandler());
 
+		menuBarOptions.add(menuNewGame);
 		menuBarOptions.add(menuLoadGame);
 		menuBarOptions.add(menuSaveGame);
         menuBarOptions.add(menuTop5Game);
@@ -283,7 +292,7 @@ public class MinesweeperGUI extends JFrame{
 		frame2.getContentPane().add(panel);
 
 		loadPanel = new JPanel();
-		panel.add(loadPanel, BorderLayout.NORTH);
+		panel.add(loadPanel, BorderLayout.CENTER);
 		loadPanel.setLayout(new BoxLayout(loadPanel,BoxLayout.Y_AXIS));
 		
 		lists = retrievePastGames();
@@ -360,14 +369,17 @@ public class MinesweeperGUI extends JFrame{
 				saveGameWindow();
 			}  else if ( source == menuTop5Game){
 				top5GameWindow();
-			}else if ( source == menuExit){
+			} else if ( source == menuNewGame){
+				minesweeperObj.restartGame();
+				boardObj.newGame();
+			} else if ( source == menuExit){
 				selectExitDialog();
 			}
 		}
 	}
 
     /**
-	 * Retrives and restores the game state for the selected game from the retrivePastGames() function
+	 * Retrives and restores the game state for the selected game from the retrievePastGames() function
 	 * @author Shivam
 	 *
 	 */
@@ -453,7 +465,6 @@ public class MinesweeperGUI extends JFrame{
 			String playerName = txtPlayerName.getText();
 			minesweeperObj.setPlayerName(playerName);
 			LocalDateTime myDateObj = LocalDateTime.now();
-		    System.out.println("Before formatting: " + myDateObj);
 		    DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"); //Changeable, doesn't affect gameplay
 
 		    String gameDate = myDateObj.format(myFormatObj);
@@ -477,7 +488,6 @@ public class MinesweeperGUI extends JFrame{
 		          clientOutputStream.flush();
 
 		          int response = clientInputStream.read();
-		          System.out.println("Response:" + response);
 		          createSaveAlert(response);
 		          
 		          clientOutputStream.close();

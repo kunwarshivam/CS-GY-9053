@@ -8,11 +8,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+
+// Author: Kunwar Shivam Srivastav
+// https://github.com/kunwarshivam/CS-GY-9053,
+
 public class SimpleServer {
 
   ArrayList clientOutputStreams;
   private  MinesweeperData y;
   private Connection conn;
+  private ArrayList<ClientHandler> handlers;
 
   SimpleServer () {
 
@@ -38,72 +43,34 @@ public class SimpleServer {
       System.out.println("Starting Server...");
       try{
           ServerSocket server = new ServerSocket(5001);
-          System.out.println("Server Started...");
+		  server.setReuseAddress(true);
+
+		  System.out.println("Server Started...");
           while(true){
         	  
               Socket clientSocket = server.accept();
-              
-              ObjectInputStream serverInputStream = new ObjectInputStream(clientSocket.getInputStream());
-              ObjectOutputStream serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-     
-              System.out.println("Client Connected...");
-              
-              serverOutputStream.write(100);
-              serverOutputStream.flush();
-              
-              int code = serverInputStream.read();
-              if (code == 200) {
-            	  MinesweeperData data = (MinesweeperData) serverInputStream.readObject();
-            	 int returnCode = saveData(data);
-            	  serverOutputStream.write(returnCode);
-            	  serverOutputStream.flush();
-              }
-              
-              if (code == 202) {
-            	 ArrayList<GameList> list = retrieveData();
-            	  serverOutputStream.writeObject(list);
-            	  serverOutputStream.flush();
-              }
-              
-              if (code == 204) {
-            	  int id = serverInputStream.read();
-            	  
-            	MinesweeperData data = getMinesweeperData(id);
-            	  serverOutputStream.writeObject(data);
-            	  serverOutputStream.flush();
-              }
-			  if (code  == 206) {
-			  	Score score = (Score) serverInputStream.readObject();
-			  	int returnCode = saveScore(score);
-			  	serverOutputStream.write(returnCode);
-			  	serverOutputStream.flush();
-			  }
-			  if (code == 208) {
-				  ArrayList<ScoreList> score = retrieveScores();
-				  serverOutputStream.writeObject(score);
-				  serverOutputStream.flush();
-			  }
+			  // create a new thread object
+			  ClientHandler clientSock
+					  = new ClientHandler(clientSocket);
+
+			  // This thread will handle the client
+			  // separately
+			  new Thread(clientSock).start();
               
           }
       }catch(IOException e){
           System.out.println("Cause1"+e.getCause());
           e.printStackTrace();
 	  }
-      catch(ClassNotFoundException e){
-          System.out.println("Cause2"+e.getCause());
-          e.printStackTrace();
-      }
   }
   
 //   /**
 //    * Insert game data into database
 //    * @param MinesweeperData obj
-//    * @return int sucess or failure code
+//    * @return int success or failure code
 //    */
   public int saveData(MinesweeperData data) {
-	  System.out.println("Name: "+data.getPlayerName());
-	  System.out.println("Date: "+data.getGameDate());
-	  System.out.println("Y: "+data.getMinesweeperData().toString());
+
 	  //Add JDBC code to save to database
 	  
 	  String sql = "INSERT INTO gamedata(name, date_time, serialized_obj) values(?,?,?)";
@@ -137,7 +104,6 @@ public class SimpleServer {
 
   public int saveScore(Score score) {
 		//Add JDBC code to save to database
-		System.out.println(">>>>>>score:"+score.getScore());
 		String sql = "INSERT INTO scores(name, score) values(?,?)";
 		try {
 			PreparedStatement ps = conn.prepareStatement(sql);
@@ -239,7 +205,6 @@ public class SimpleServer {
 	  MinesweeperData data = new MinesweeperData();
 	  
 	  String sql = "Select name, date_time, serialized_obj from gamedata where id = ?";
-	  System.out.println(id);
 	   try {
 		   PreparedStatement ps = conn.prepareStatement(sql);
 		   ps.setInt(1, id);
@@ -254,9 +219,6 @@ public class SimpleServer {
 		   
 		   data = (MinesweeperData) objectIn.readObject();
 		   
-		   System.out.println("Name:"+data.getPlayerName());
-		   System.out.println("Date:"+data.getGameDate());
-		   
 		   rset.close();
 		   ps.close();
 		   
@@ -266,4 +228,69 @@ public class SimpleServer {
 	  
 	  return data;
   }
+
+	// ClientHandler class
+	private class ClientHandler implements Runnable {
+		private final Socket clientSocket;
+
+		// Constructor
+		public ClientHandler(Socket socket)
+		{
+			this.clientSocket = socket;
+		}
+
+		public void run()
+		{
+			try {
+
+				// get the outputstream of client
+
+				ObjectInputStream serverInputStream = new ObjectInputStream(clientSocket.getInputStream());
+				ObjectOutputStream serverOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+
+				System.out.println("Client Connected...");
+
+				serverOutputStream.write(100);
+				serverOutputStream.flush();
+
+				int code = serverInputStream.read();
+				if (code == 200) {
+					MinesweeperData data = (MinesweeperData) serverInputStream.readObject();
+					int returnCode = saveData(data);
+					serverOutputStream.write(returnCode);
+					serverOutputStream.flush();
+				}
+
+				if (code == 202) {
+					ArrayList<GameList> list = retrieveData();
+					serverOutputStream.writeObject(list);
+					serverOutputStream.flush();
+				}
+
+				if (code == 204) {
+					int id = serverInputStream.read();
+
+					MinesweeperData data = getMinesweeperData(id);
+					serverOutputStream.writeObject(data);
+					serverOutputStream.flush();
+				}
+				if (code  == 206) {
+					Score score = (Score) serverInputStream.readObject();
+					int returnCode = saveScore(score);
+					serverOutputStream.write(returnCode);
+					serverOutputStream.flush();
+				}
+				if (code == 208) {
+					ArrayList<ScoreList> score = retrieveScores();
+					serverOutputStream.writeObject(score);
+					serverOutputStream.flush();
+				}
+			}
+			catch (IOException | ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }
+
+
