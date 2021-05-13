@@ -1,5 +1,9 @@
 import java.io.Serializable;
 
+
+// Author: Kunwar Shivam Srivastav
+// https://github.com/kunwarshivam/CS-GY-9053,
+
 public class Score implements Serializable {
     private String playerName = "Player1";
     private int score = 0;

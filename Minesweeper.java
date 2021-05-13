@@ -4,12 +4,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.Socket;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
+import java.util.Arrays;
+
+
+// Author: Kunwar Shivam Srivastav
+// https://github.com/kunwarshivam/CS-GY-9053,
 
 public class Minesweeper implements Serializable {
     private int field[] = new int[16*16];
@@ -57,7 +57,6 @@ public class Minesweeper implements Serializable {
     }
 
     public void setPlayerName(String name) {
-        System.out.println("name changing:"+name);
         this.playerName = name;
     }
 
@@ -89,8 +88,6 @@ public class Minesweeper implements Serializable {
             clientOutputStream.flush();
 
             int response = clientInputStream.read();
-            System.out.println("Response:" + response);
-
             clientOutputStream.close();
             clientInputStream.close();
             sock.close();

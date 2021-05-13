@@ -1,4 +1,8 @@
 
+// Author: Kunwar Shivam Srivastav
+// https://github.com/kunwarshivam/CS-GY-9053,
+
+
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -9,6 +13,8 @@ import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Random;
 import javax.swing.*;
+
+// Reference = https://zetcode.com/javagames/minesweeper/
 
 public class Board extends JPanel {
 
@@ -54,7 +60,7 @@ public class Board extends JPanel {
         this.statusbar = statusbar;
         this.minesweeperObj = obj;
         addTimePanel();
-        initBoard();
+        init();
     }
 
     public void addTimePanel(){
@@ -75,7 +81,7 @@ public class Board extends JPanel {
         });
     }
 
-    private void initBoard() {
+    private void init() {
 
         setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
 
@@ -101,29 +107,30 @@ public class Board extends JPanel {
         field = Arrays.copyOf(this.minesweeperObj.getField(), this.minesweeperObj.getField().length);
 
         statusbar.setText(Integer.toString(minesLeft));
-        int i = 0;
-
         repaint();
-        timer.start();
     }
 
     public void newGame() {
 
         int cell;
-
+        if(timer.isRunning()){
+            timer.stop();
+        }
         Random random = new Random();
         inGame = true;
         allCells = N_ROWS * N_COLS;
         field = new int[allCells];
+        minesweeperObj.setTimeLeft(1000);
+
         minesLeft = minesweeperObj.getMinesLeft();
         for (int i = 0; i < allCells; i++) {
 
             field[i] = COVER_FOR_CELL;
         }
 
-        minesweeperObj.restartGame();
         statusbar.setText(Integer.toString(minesLeft));
         int i = 0;
+
 
         while (i < N_MINES) {
 
@@ -196,7 +203,6 @@ public class Board extends JPanel {
         }
         repaint();
         minesweeperObj.setField(field);
-        timer.start();
     }
 
     private void find_empty_cells(int j) {
@@ -350,6 +356,10 @@ public class Board extends JPanel {
 
         @Override
         public void mousePressed(MouseEvent e) {
+
+            if(!timer.isRunning()){
+                timer.start();
+            }
 
             int x = e.getX();
             int y = e.getY() - TOP_MARGIN;

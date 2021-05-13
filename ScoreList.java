@@ -2,6 +2,10 @@
 
 import java.io.Serializable;
 
+
+// Author: Kunwar Shivam Srivastav
+// https://github.com/kunwarshivam/CS-GY-9053,
+
 public class ScoreList implements Serializable {
 
     private int id;
