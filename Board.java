@@ -181,6 +181,7 @@ public class Board extends JPanel {
         minesLeft = this.minesweeperObj.getMinesLeft();
         field = Arrays.copyOf(this.minesweeperObj.getField(), this.minesweeperObj.getField().length);
         statusbar.setText(Integer.toString(minesLeft));
+        timeLabel.setText("Time Remaining: " + minesweeperObj.getTimeLeft());
         repaint();
     }
 
@@ -195,6 +196,7 @@ public class Board extends JPanel {
         allCells = N_ROWS * N_COLS;
         field = new int[allCells];
         minesweeperObj.setTimeLeft(1000);
+        timeLabel.setText("Time Remaining: " + minesweeperObj.getTimeLeft());
 
         minesLeft = minesweeperObj.getMinesLeft();
         for (int i = 0; i < allCells; i++) {
