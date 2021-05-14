@@ -26,7 +26,7 @@ public class MinesweeperGUI extends JFrame{
 	private JTable scoreTable;
     private JMenuBar menuBar;
     private JMenu menuBarOptions;
-	private JMenuItem menuRestartGame, menuLoadGame, menuSaveGame, menuExit, menuTop5Game, menuNewGame;
+	private JMenuItem menuRestartGame, menuLoadGame, menuSaveGame, menuExit, menuTop5Scores, menuNewGame;
     private JTextField txtPlayerName = new JTextField(30);
     private JLabel lblPlayerName = new JLabel("Name: ");
 
@@ -40,7 +40,7 @@ public class MinesweeperGUI extends JFrame{
     private final int N_COLS = 16;
     private final int CELL_SIZE = 15;
     private final int BOARD_WIDTH = N_COLS * CELL_SIZE + 1;
-    private final int BOARD_HEIGHT = N_ROWS * CELL_SIZE + 140;
+    private final int BOARD_HEIGHT = N_ROWS * CELL_SIZE + 100;
 
 	//Networking Variables
 	private ObjectOutputStream clientOutputStream;
@@ -60,7 +60,7 @@ public class MinesweeperGUI extends JFrame{
         statusbar = new JLabel("");
 		boardObj = new Board(statusbar, minesweeperObj);
         addMainPanel();
-        addPlayerNameToMainPanel();
+//        addPlayerNameToMainPanel();
         addBoard();
         frame.getContentPane().add(panel);
 		frame.setVisible(true);
@@ -98,8 +98,8 @@ public class MinesweeperGUI extends JFrame{
 		panel.add(mainPanel, BorderLayout.CENTER);
 	}
 
-	public void addPlayerNameToMainPanel(){
-		mainPanel.add(namePanel, BorderLayout.NORTH);
+	public void addPlayerNameToSavePanel(){
+		savePanel.add(namePanel, BorderLayout.NORTH);
 		namePanel.setLayout(new BoxLayout(namePanel,BoxLayout.X_AXIS));
 
 		lblPlayerName.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -131,9 +131,9 @@ public class MinesweeperGUI extends JFrame{
 		namePanel.add(txtPlayerName);
 	}
 
-    public void addPlayerNameToSavePanel(){
-		savePanel.add(namePanel, BorderLayout.NORTH);
-	}
+//    public void addPlayerNameToSavePanel(){
+//		savePanel.add(namePanel, BorderLayout.NORTH);
+//	}
 
 
     public void addMenu() {
@@ -149,7 +149,7 @@ public class MinesweeperGUI extends JFrame{
 		menuNewGame = new JMenuItem("New Game");
         menuLoadGame = new JMenuItem("Load Game");
         menuSaveGame = new JMenuItem("Save Game");
-        menuTop5Game = new JMenuItem("Top 5 Games");
+        menuTop5Scores = new JMenuItem("Top 5 Scores");
         menuExit = new JMenuItem("Exit");
 
 		menuNewGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
@@ -161,8 +161,8 @@ public class MinesweeperGUI extends JFrame{
         menuSaveGame.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 		menuSaveGame.addActionListener(new MenuHandler());
 
-        menuTop5Game.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
-		menuTop5Game.addActionListener(new MenuHandler());
+        menuTop5Scores.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, ActionEvent.CTRL_MASK));
+		menuTop5Scores.addActionListener(new MenuHandler());
 
         menuExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
 		menuExit.addActionListener(new MenuHandler());
@@ -170,7 +170,7 @@ public class MinesweeperGUI extends JFrame{
 		menuBarOptions.add(menuNewGame);
 		menuBarOptions.add(menuLoadGame);
 		menuBarOptions.add(menuSaveGame);
-        menuBarOptions.add(menuTop5Game);
+        menuBarOptions.add(menuTop5Scores);
 		menuBarOptions.add(menuExit);
     }
 
@@ -190,7 +190,7 @@ public class MinesweeperGUI extends JFrame{
 		frame2 = new JFrame();
 		frame2.setTitle("Save Game");
 		frame2.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame2.setSize(300,350);
+		frame2.setSize(300,100);
 		frame2.setResizable(false);
 
 		panel = new JPanel(new BorderLayout());
@@ -285,7 +285,7 @@ public class MinesweeperGUI extends JFrame{
 		frame2 = new JFrame();
 		frame2.setTitle("Load Game");
 		frame2.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame2.setSize(400,750);
+		frame2.setSize(400,500);
 		frame2.setResizable(true);
 
 		panel = new JPanel(new BorderLayout());
@@ -367,7 +367,7 @@ public class MinesweeperGUI extends JFrame{
 				loadGameWindow();
 			} else if ( source == menuSaveGame){
 				saveGameWindow();
-			}  else if ( source == menuTop5Game){
+			}  else if ( source == menuTop5Scores){
 				top5GameWindow();
 			} else if ( source == menuNewGame){
 				minesweeperObj.restartGame();

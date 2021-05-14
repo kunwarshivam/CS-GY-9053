@@ -17,7 +17,7 @@ public class GameList implements Serializable {
 	}
 	
 	public String getGameName() {
-		return "Player Name: " + playerName + ", Date & Time: " + gameDate;
+		return "Name: " + playerName + ", Date: " + gameDate;
 	}
 	
 	public int getID() {
