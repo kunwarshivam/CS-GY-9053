@@ -3,20 +3,27 @@
 // https://github.com/kunwarshivam/CS-GY-9053,
 
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
 import java.util.Arrays;
 import java.util.Random;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 // Reference = https://zetcode.com/javagames/minesweeper/
 
 public class Board extends JPanel {
+
+    private JFrame scoreFrame;
+    private JTextField txtPlayerName = new JTextField(30);
+    private JLabel lblPlayerName = new JLabel("Name: ");
+    private JPanel  namePanel;
+    private JButton btnSaveScore;
 
     private static final String MINESWEEPERTILES = "./minesweepertiles/";
     private final int NUM_IMAGES = 13;
@@ -61,6 +68,74 @@ public class Board extends JPanel {
         this.minesweeperObj = obj;
         addTimePanel();
         init();
+        createScoreWindow();
+    }
+
+    public void addPlayerNameToScorePanel(){
+        namePanel = new JPanel();
+
+        scoreFrame.add(namePanel, BorderLayout.NORTH);
+        namePanel.setLayout(new BoxLayout(namePanel,BoxLayout.X_AXIS));
+
+        lblPlayerName.setHorizontalAlignment(SwingConstants.RIGHT);
+        lblPlayerName.setPreferredSize(new Dimension(50,50));
+        lblPlayerName.setMaximumSize(new Dimension(50,50));
+
+        txtPlayerName.setHorizontalAlignment(SwingConstants.LEFT);
+        txtPlayerName.setPreferredSize(new Dimension(200,50));
+        txtPlayerName.setMaximumSize(new Dimension(150,30));
+
+        txtPlayerName.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                minesweeperObj.setPlayerName(txtPlayerName.getText());
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                minesweeperObj.setPlayerName(txtPlayerName.getText());
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                minesweeperObj.setPlayerName(txtPlayerName.getText());
+            }
+        });
+
+        namePanel.add(lblPlayerName);
+        namePanel.add(txtPlayerName);
+    }
+
+    public void createScoreWindow(){
+        scoreFrame = new JFrame();
+        scoreFrame.setTitle("Save Score");
+        scoreFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        scoreFrame.setSize(300, 100);
+        scoreFrame.setResizable(false);
+
+        JPanel panel = new JPanel(new BorderLayout());
+        scoreFrame.getContentPane().add(panel);
+        JPanel savePanel = new JPanel();
+        panel.add(savePanel, BorderLayout.CENTER);
+        savePanel.setLayout(new BoxLayout(savePanel,BoxLayout.X_AXIS));
+        addPlayerNameToScorePanel();
+
+        btnSaveScore = new JButton("Save Score");
+        btnSaveScore.setHorizontalAlignment(SwingConstants.CENTER);
+        btnSaveScore.setPreferredSize(new Dimension(150,30));
+        btnSaveScore.setMaximumSize(new Dimension(150,30));
+        btnSaveScore.addActionListener(new Board.SaveScoreHandler());
+
+        savePanel.add(btnSaveScore);
+    }
+
+    class SaveScoreHandler implements ActionListener {
+        public void actionPerformed(ActionEvent event) {
+            String playerName = txtPlayerName.getText();
+            minesweeperObj.setPlayerName(playerName);
+            minesweeperObj.saveScore();
+            scoreFrame.setVisible(false);
+        }
     }
 
     public void addTimePanel(){
@@ -105,7 +180,6 @@ public class Board extends JPanel {
         allCells = N_ROWS * N_COLS;
         minesLeft = this.minesweeperObj.getMinesLeft();
         field = Arrays.copyOf(this.minesweeperObj.getField(), this.minesweeperObj.getField().length);
-
         statusbar.setText(Integer.toString(minesLeft));
         repaint();
     }
@@ -343,7 +417,7 @@ public class Board extends JPanel {
 
         if (uncover == 0 && inGame) {
             inGame = false;
-            minesweeperObj.saveScore();
+            scoreFrame.setVisible(true);
             statusbar.setText("Game won");
             timer.stop();
         } else if (!inGame) {
@@ -373,6 +447,7 @@ public class Board extends JPanel {
 
                 newGame();
                 repaint();
+                return;
             }
 
             if ((x < N_COLS * CELL_SIZE) && (y < N_ROWS * CELL_SIZE)) {

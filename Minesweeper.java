@@ -65,7 +65,7 @@ public class Minesweeper implements Serializable {
     }
 
     private int calculateScore() {
-       return (int) timeLeft/10;
+       return (int) timeLeft;
     }
 
     public void saveScore() {
